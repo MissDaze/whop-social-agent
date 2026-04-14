@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String   @id @default(cuid())
+  whopUserId             String   @unique
+  whopAccessToken        String?
+  whopRefreshToken       String?
+  email                  String?
+  name                   String?
+  image                  String?
+
+  // User settings
+  openRouterKey          String?
+  whopApiKey             String?
+  redditAccountId        String?
+  twitterConnectionToken String?
+  onboarded              Boolean  @default(false)
+  createdAt              DateTime @default(now())
+
+  products      WhopProduct[]
+  posts         ScheduledPost[]
+  comments      PostComment[]
+  opportunities Opportunity[]
+  media         SampleMedia[]
+  logs          AgentRunLog[]
+}
+
+model WhopProduct {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  whopId      String
+  name        String
+  description String?
+  price       String?
+  imageUrl    String?
+  whopUrl     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts ScheduledPost[]
+
+  @@unique([userId, whopId])
+}
+
+model ScheduledPost {
+  id         String       @id @default(cuid())
+  userId     String
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform   String
+  content    String
+  subreddit  String?
+  status     String       @default("pending")
+  mediaUrl   String?
+  errorMsg   String?
+  externalId String?
+  postedAt   DateTime?
+  productId  String?
+  product    WhopProduct? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  comments PostComment[]
+}
+
+model PostComment {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId            String
+  post              ScheduledPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  platform          String
+  externalCommentId String?
+  authorName        String?
+  commentText       String
+  suggestedReply    String?
+  replyStatus       String        @default("pending")
+  repliedAt         DateTime?
+  createdAt         DateTime      @default(now())
+}
+
+model Opportunity {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform       String
+  sourceUrl      String
+  externalId     String?
+  authorName     String?
+  originalText   String
+  subreddit      String?
+  suggestedReply String?
+  replyStatus    String    @default("pending")
+  repliedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model SampleMedia {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String
+  url          String
+  thumbnailUrl String?
+  mediaType    String   @default("video")
+  platform     String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model AgentRunLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  runType   String
+  status    String
+  message   String?
+  details   String?
+  createdAt DateTime @default(now())
+}
