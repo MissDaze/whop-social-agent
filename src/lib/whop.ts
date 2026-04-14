@@ -1,6 +1,7 @@
 export const WHOP_CLIENT_ID = process.env.WHOP_CLIENT_ID!;
 export const WHOP_CLIENT_SECRET = process.env.WHOP_CLIENT_SECRET!;
-export const WHOP_REDIRECT_URI = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`;
+// Use server-side env var for redirect URI so it's not baked in at build time
+export const WHOP_REDIRECT_URI = `${process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`;
 
 export async function exchangeCodeForToken(code: string): Promise<{
   access_token: string;
